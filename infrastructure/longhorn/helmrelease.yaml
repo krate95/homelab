@@ -1,0 +1,28 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: longhorn-release
+  namespace: longhorn-system
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: longhorn
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: longhorn-repo
+      version: v1.11.1
+  values:
+    persistence:
+      defaultClass: false
+      defaultClassReplicaCount: 1
+      defaultFsType: ext4
+      reclaimPolicy: Delete
+    defaultSettings:
+      defaultDataPath: /var/lib/longhorn
+      defaultReplicaCount: 1
+      storageOverProvisioningPercentage: 100
+      storageMinimalAvailablePercentage: 25
+      storageReservedPercentageForDefaultDisk: 20
