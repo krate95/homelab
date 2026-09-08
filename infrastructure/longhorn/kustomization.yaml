@@ -4,6 +4,5 @@ resources:
   - namespace.yaml
   - helmrepository.yaml
   - helmrelease.yaml
-  - middlewares.yaml
   - ingress.yaml
   - storageclass.yaml
