@@ -1,0 +1,25 @@
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: homelab-critical
+value: 100000
+globalDefault: false
+preemptionPolicy: PreemptLowerPriority
+description: "Critical services: DNS, ingress, storage, monitoring básico"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: homelab-medium
+value: 1000
+globalDefault: true
+description: "Normal services"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: homelab-low
+value: 100
+globalDefault: false
+preemptionPolicy: Never
+description: "Low priority services"
