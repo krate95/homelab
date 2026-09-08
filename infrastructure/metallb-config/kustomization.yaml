@@ -1,5 +1,16 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
+apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
-
-resources:
-  - ip-pool.yaml
+metadata:
+  name: metallb-config
+  namespace: flux-system
+spec:
+  interval: 1h
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: ./infrastructure/metallb-config
+  prune: true
+  wait: true
+  timeout: 5m
+  dependsOn:
+    - name: infrastructure
