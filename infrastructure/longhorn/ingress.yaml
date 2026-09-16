@@ -5,8 +5,7 @@ metadata:
   namespace: longhorn-system
   annotations:
     # Connect the middlewares defined in step 2
-    traefik.ingress.kubernetes.io/router.middlewares: longhorn-system-longhorn-auth@kubernetescrd,
-      longhorn-system-longhorn-buffering@kubernetescrd,
+    traefik.ingress.kubernetes.io/router.middlewares: longhorn-system-longhorn-buffering@kubernetescrd,
       traefik-local-only@kubernetescrd
     external-dns.alpha.kubernetes.io/hostname: longhorn-talos.example.com
     cert-manager.io/cluster-issuer: letsencrypt-prod
