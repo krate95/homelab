@@ -1,0 +1,9 @@
+age.agekey
+
+# Local AI assistant state
+.codex
+.codex/
+.claude
+.claude/
+.cursor
+.cursor/
