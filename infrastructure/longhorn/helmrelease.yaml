@@ -21,7 +21,7 @@ spec:
       defaultFsType: ext4
       reclaimPolicy: Delete
     defaultSettings:
-      defaultDataPath: /var/lib/longhorn
+      defaultDataPath: /var/mnt/longhorn
       defaultReplicaCount: 1
       storageOverProvisioningPercentage: 100
       storageMinimalAvailablePercentage: 25
