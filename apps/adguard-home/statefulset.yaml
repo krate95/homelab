@@ -70,7 +70,7 @@ spec:
           args:
             - "--no-check-update"
             - "-c"
-            - "/opt/aduardhome/conf/AdGuardHome.yaml"
+            - "/opt/adguardhome/conf/AdGuardHome.yaml"
             - "-w"
             - "/opt/adguardhome/work"
             - "--no-permcheck"
