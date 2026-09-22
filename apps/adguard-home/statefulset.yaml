@@ -24,7 +24,7 @@ spec:
         runAsGroup: 65534
         fsGroup: 65534
         seccompProfile:
-          type: type
+          type: RuntimeDefault
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
