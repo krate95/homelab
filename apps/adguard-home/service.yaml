@@ -27,6 +27,7 @@ spec:
   ports:
     - { name: dns-udp, port: 53, protocol: UDP }
     - { name: dns-tcp, port: 53, protocol: TCP }
+    - { name: http, port: 80 }
 ---
 apiVersion: v1
 kind: Service
