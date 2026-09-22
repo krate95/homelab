@@ -67,7 +67,13 @@ spec:
                 - "ALL"
               add:
                 - "NET_BIND_SERVICE"
-          args: ["--no-check-update"]
+          args:
+            - "--no-check-update"
+            - "-c"
+            - "/opt/aduardhome/conf/AdGuardHome.yaml"
+            - "-w"
+            - "/opt/adguardhome/work"
+            - "--no-permcheck"
           ports:
             - { name: http, containerPort: 80 }
             - { name: dns-udp, containerPort: 53, protocol: UDP }
