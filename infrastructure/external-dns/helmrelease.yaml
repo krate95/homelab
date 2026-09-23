@@ -51,7 +51,7 @@ spec:
     domainFilters:
       - example.com
     sources:
-      - crf
+      - crd
     policy: upsert-only
     txtOwnerId: talos
     txtWildcardReplacement: "wildcard"
