@@ -77,6 +77,11 @@ spec:
   timeout: 5m
   dependsOn:
     - name: infrastructure
+    - name: cluster-vars
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: cluster-vars
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization

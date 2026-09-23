@@ -13,3 +13,5 @@ parameters:
   staleReplicaTimeout: "30"
   fsType: ext4
   dataLocality: best-effort
+  recurringJobSelector: '[{"name":"default", "isGroup":true}]'
+  backupTargetName: "nas"

@@ -1,0 +1,9 @@
+apiVersion: longhorn.io/v1beta2
+kind: BackupTarget
+metadata:
+  name: nas
+  namespace: longhorn-system
+spec:
+  backupTargetURL: nfs://${NFS_SERVER_IP}:${NFS_BACKUPS_PATH}
+  credentialSecret: ""
+  pollInterval: 5m
