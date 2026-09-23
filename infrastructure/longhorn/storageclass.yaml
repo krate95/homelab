@@ -4,6 +4,7 @@ metadata:
   name: longhorn-rwo-retain
   annotations:
     storageclass.kubernetes.io/is-default-class: "false"
+    kustomize.toolkit.fluxcd.io/force: "true"
 provisioner: driver.longhorn.io
 allowVolumeExpansion: true
 reclaimPolicy: Retain
