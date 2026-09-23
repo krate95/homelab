@@ -32,8 +32,8 @@ spec:
                     - low
 
     nfs:
-      server: 192.168.1.2
-      path: /raid/k8s
+      server: ${NFS_SERVER_IP}
+      path: ${NFS_SERVER_PATH}
 
     storageClass:
       create: true

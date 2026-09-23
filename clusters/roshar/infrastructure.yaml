@@ -16,4 +16,9 @@ spec:
     provider: sops
     secretRef:
       name: sops-age
-
+  dependsOn:
+    - name: cluster-vars
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: cluster-vars

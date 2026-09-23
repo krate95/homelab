@@ -21,3 +21,8 @@ spec:
     - name: metallb-config
     - name: traefik-config
     - name: cert-manager-config
+    - name: cluster-vars
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: cluster-vars
