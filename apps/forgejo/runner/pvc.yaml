@@ -1,0 +1,33 @@
+# Is this overwhelming?
+# https://kubecraft.click/forgejo-k8s
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: forgejo-runner-docker-cache-longhorn
+  namespace: forgejo-runner
+spec:
+  storageClassName: longhorn-rwo-retain
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 10Gi # Docker image cache — adjust as needed
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: forgejo-runner-data-longhorn
+  namespace: forgejo-runner
+spec:
+  storageClassName: longhorn-rwo-retain
+  resources:
+    requests:
+      storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+
+# Is this overwhelming?
+# https://kubecraft.click/forgejo-k8s

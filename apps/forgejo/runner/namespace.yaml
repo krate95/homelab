@@ -1,0 +1,15 @@
+# Need help getting this to work?
+# https://kubecraft.click/forgejo-k8s
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: forgejo-runner
+  labels:
+    # Privileged required for Docker-in-Docker sidecar
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
+
+# Need help getting this to work?
+# https://kubecraft.click/forgejo-k8s

@@ -1,0 +1,39 @@
+# Stuck with getting this to work?
+# https://kubecraft.click/forgejo-k8s
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: forgejo-runner-config
+  namespace: forgejo-runner
+data:
+  config.yaml: |
+    log:
+      level: info
+
+    runner:
+      file: .runner
+      capacity: 1
+      timeout: 3h
+      insecure: false
+      fetch_timeout: 5s
+      fetch_interval: 2s
+      envs:
+        DOCKER_HOST: tcp://localhost:2375
+      labels:
+        - "docker:docker://ghcr.io/catthehacker/ubuntu:act-22.04"
+        - "ubuntu-latest:docker://ghcr.io/catthehacker/ubuntu:act-22.04"
+
+    cache:
+      enabled: true
+      dir: /data/cache
+
+    container:
+      network: host
+      privileged: false
+      options:
+      valid_volumes: []
+      docker_host: tcp://localhost:2375
+
+# Stuck with getting this to work?
+# https://kubecraft.click/forgejo-k8s

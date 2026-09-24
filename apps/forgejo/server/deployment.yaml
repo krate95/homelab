@@ -1,0 +1,111 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forgejo
+  namespace: forgejo
+  labels:
+    app: forgejo
+spec:
+  selector:
+    matchLabels:
+      app: forgejo
+  replicas: 0
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: forgejo
+      labels:
+        app: forgejo
+        app.kubernetes.io/name: forgejo
+        app.kubernetes.io/instance: forgejo
+        app.kubernetes.io/component: server
+        policy-type: "app"
+    spec:
+      priorityClassName: homelab-medium
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - preference:
+                matchExpressions:
+                  - key: homelab/performance
+                    operator: In
+                    values:
+                      - medium
+              weight: 100
+      securityContext:
+        fsGroup: 1000
+      initContainers:
+        - name: fix-permissions
+          image: busybox:1.37
+          command:
+            - "sh"
+            - "-c"
+            - "chown -R 1000:1000 /etc/gitea"
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - mountPath: /etc/gitea
+              name: forgejo-config
+      containers:
+        - name: forgejo
+          image: data.forgejo.org/forgejo/forgejo:14.0.2-rootless
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: forgejo-config
+          ports:
+            - containerPort: 3000
+              name: http
+              protocol: TCP
+            - containerPort: 2222
+              name: ssh
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 1Gi
+              cpu: 1
+          livenessProbe:
+            httpGet:
+              path: /api/healthz
+              port: 3000
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/healthz
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - mountPath: /etc/gitea
+              name: forgejo-config
+            - mountPath: /data
+              name: forgejo-data
+      restartPolicy: Always
+
+      volumes:
+        - name: forgejo-config
+          persistentVolumeClaim:
+            claimName: forgejo-config-longhorn
+        - name: forgejo-data
+          persistentVolumeClaim:
+            claimName: forgejo-data-longhorn

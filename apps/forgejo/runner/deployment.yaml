@@ -1,0 +1,218 @@
+# Stuck with getting this to work?
+# https://kubecraft.click/forgejo-k8s
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forgejo-runner
+  namespace: forgejo-runner
+  labels:
+    app.kubernetes.io/name: forgejo-runner
+    app.kubernetes.io/instance: forgejo-runner
+    app.kubernetes.io/component: runner
+spec:
+  replicas: 0
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: forgejo-runner
+
+  template:
+    metadata:
+      labels:
+        app: forgejo-runner
+        app.kubernetes.io/name: forgejo-runner
+        app.kubernetes.io/instance: forgejo-runner
+        app.kubernetes.io/component: runner
+        policy-type: "app"
+
+    spec:
+      # NOTE: Cannot run as non-root. The Docker-in-Docker sidecar requires
+      # privileged: true to run the Docker daemon. This is a fundamental
+      # requirement for container-based CI/CD runners that build images.
+      # Alternative: Use Kubernetes-native runners (e.g., Kaniko) for rootless builds.
+      priorityClassName: homelab-low
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: homelab/performance
+                    operator: In
+                    values:
+                      - high
+      securityContext:
+        fsGroup: 1000
+
+      initContainers:
+        # Register runner with Forgejo instance
+        # Token generated in Forgejo: Site Administration > Actions > Runners
+        - name: register-runner
+          image: data.forgejo.org/forgejo/runner:12.6.4
+          command:
+            - sh
+            - -c
+            - |
+              if [ ! -f /data/.runner ]; then
+                echo "Registering runner..."
+                forgejo-runner register \
+                  --instance https://${FORGEJO_DOMAIN} \
+                  --token "$${RUNNER_TOKEN}" \
+                  --name "k8s-runner" \
+                  --labels "docker:docker://ghcr.io/catthehacker/ubuntu:act-22.04,ubuntu-latest:docker://ghcr.io/catthehacker/ubuntu:act-22.04" \
+                  --no-interactive
+                mv .runner /data/.runner
+              else
+                echo "Runner already registered"
+              fi
+          env:
+            - name: RUNNER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: forgejo-runner-secret
+                  key: RUNNER_TOKEN
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+          volumeMounts:
+            - name: runner-data
+              mountPath: /data
+
+      containers:
+        # Docker-in-Docker sidecar — provides Docker daemon for CI jobs
+        - name: docker
+          image: docker:29-dind
+          imagePullPolicy: IfNotPresent
+          args:
+            - --tls=false
+          securityContext:
+            privileged: true
+          env:
+            - name: DOCKER_TLS_CERTDIR
+              value: ""
+          ports:
+            - containerPort: 2375
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              memory: 4Gi
+          livenessProbe:
+            httpGet:
+              path: /version
+              port: 2375
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /version
+              port: 2375
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: docker-storage
+              mountPath: /var/lib/docker
+
+        # Forgejo runner — executes CI/CD workflows
+        - name: runner
+          image: data.forgejo.org/forgejo/runner:12.6.4
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for Docker daemon..."
+              while ! wget -q -O- http://localhost:2375/version >/dev/null 2>&1; do
+                sleep 1
+              done
+              echo "Docker is ready!"
+              cp /data/.runner .runner
+              forgejo-runner daemon --config /config/config.yaml
+          livenessProbe:
+            exec:
+              command:
+                - pgrep
+                - -f
+                - forgejo-runner
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+                - pgrep
+                - -f
+                - forgejo-runner
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          env:
+            - name: DOCKER_HOST
+              value: tcp://localhost:2375
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 4000m
+              memory: 512Mi
+          volumeMounts:
+            - name: runner-data
+              mountPath: /data
+            - name: config
+              mountPath: /config
+
+        # Docker cache janitor — periodically prunes the DinD image/build
+        # cache so the 10Gi docker-storage PVC doesn't fill up and break CI
+        # jobs with "no space left on device". Runs in the same pod so it
+        # reaches the daemon over localhost:2375 — no daemon exposure needed.
+        - name: docker-prune
+          image: docker:29-cli
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DOCKER_HOST
+              value: tcp://localhost:2375
+          command:
+            - sh
+            - -c
+            - |
+              while ! wget -q -O- http://localhost:2375/version >/dev/null 2>&1; do
+                sleep 5
+              done
+              while true; do
+                echo "[docker-prune] $(date -u) pruning..."
+                docker system prune -af --filter "until=24h" || true
+                docker builder prune -af --filter "until=24h" || true
+                docker system df || true
+                sleep 21600  # every 6h
+              done
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+
+      volumes:
+        - name: runner-data
+          persistentVolumeClaim:
+            claimName: forgejo-runner-data-longhorn
+        - name: docker-storage
+          persistentVolumeClaim:
+            claimName: forgejo-runner-docker-cache-longhorn
+        - name: config
+          configMap:
+            name: forgejo-runner-config
+
+      restartPolicy: Always
+
+# Stuck with getting this to work?
+# https://kubecraft.click/forgejo-k8s

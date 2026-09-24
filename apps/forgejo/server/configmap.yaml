@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: forgejo-config
+  namespace: forgejo
+data:
+  # ============================================================
+  # Server Settings
+  # ============================================================
+  FORGEJO__server__DOMAIN: ${FORGEJO_DOMAIN}
+  FORGEJO__server__ROOT_URL: https://${FORGEJO_DOMAIN}/
+  FORGEJO__server__HTTP_PORT: "3000"
+  FORGEJO__server__SSH_DOMAIN: ${FORGEJO_DOMAIN}
+  FORGEJO__server__SSH_PORT: "2222"
+  FORGEJO__server__SSH_LISTEN_PORT: "2222"
+
+  # Disable SSH timeouts for large pushes
+  FORGEJO__server__PER_WRITE_TIMEOUT: "-1"
+  FORGEJO__server__PER_WRITE_PER_KB_TIMEOUT: "-1"
+
+  # ============================================================
+  # Database — SQLite (zero external dependencies)
+  # ============================================================
+  FORGEJO__database__DB_TYPE: sqlite3
+  FORGEJO__database__PATH: /data/forgejo.db
+  FORGEJO__database__SQLITE_JOURNAL_MODE: WAL # Recommended for performance
+
+  # ============================================================
+  # Security & Privacy
+  # ============================================================
+  FORGEJO__security__INSTALL_LOCK: "true"
+  FORGEJO__service__REQUIRE_SIGNIN_VIEW: "true" # Require login for all access
+  FORGEJO__service__DISABLE_REGISTRATION: "true" # No public signups
+
+  # ============================================================
+  # Repository Settings
+  # ============================================================
+  FORGEJO__repository__ROOT: /data/git
+
+  # ============================================================
+  # Actions (CI/CD) — enable Forgejo Actions
+  # ============================================================
+  FORGEJO__actions__ENABLED: "true"
+  FORGEJO__actions__DEFAULT_ACTIONS_URL: "https://data.forgejo.org"
+
+  # ============================================================
+  # API Settings
+  # ============================================================
+  FORGEJO__api__MAX_RESPONSE_ITEMS: "1000"
+
+  # ============================================================
+  # Queue Settings
+  # ============================================================
+  FORGEJO__queue__MAX_WORKERS: "10"
+
+  # ============================================================
+  # Data Paths
+  # ============================================================
+  FORGEJO__server__APP_DATA_PATH: /data/app
+  FORGEJO__picture__AVATAR_UPLOAD_PATH: /data/app/avatars
+  FORGEJO__picture__REPOSITORY_AVATAR_UPLOAD_PATH: /data/app/repo-avatars
+  FORGEJO__attachment__PATH: /data/app/attachments
+  FORGEJO__session__PROVIDER_CONFIG: /data/app/sessions
+  FORGEJO__log__ROOT_PATH: /data/app/log
+  FORGEJO__lfs__PATH: /data/lfs
+
+# Is this overwhelming?
+# https://kubecraft.click/forgejo-k8s
+

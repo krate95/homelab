@@ -26,3 +26,32 @@ spec:
     substituteFrom:
       - kind: Secret
         name: cluster-vars
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: forgejo
+  namespace: flux-system
+spec:
+  force: false
+  interval: 10m
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: ./apps/forgejo
+  wait: true
+  timeout: 5m
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
+  dependsOn:
+    - name: infrastructure
+    - name: traefik-config
+    - name: cert-manager-config
+    - name: cluster-vars
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: cluster-vars

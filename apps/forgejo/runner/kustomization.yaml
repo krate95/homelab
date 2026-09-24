@@ -1,0 +1,15 @@
+# Is this overwhelming?
+# https://kubecraft.click/forgejo-k8s
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - secrets/forgejo-secret.yaml
+  - configmap.yaml
+  - pvc.yaml
+  - deployment.yaml
+  # - networkpolicy.yaml
+
+# Is this overwhelming?
+# https://kubecraft.click/forgejo-k8s
