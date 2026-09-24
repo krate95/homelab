@@ -8,15 +8,10 @@ metadata:
     traefik.ingress.kubernetes.io/router.middlewares:
       longhorn-system-longhorn-buffering@kubernetescrd,
       traefik-local-only@kubernetescrd
-    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: traefik
-  tls:
-    - hosts:
-        - longhorn-talos.example.com
-      secretName: longhorn-tls
   rules:
-    - host: longhorn-talos.example.com
+    - host: longhorn-talos.${BASE_DOMAIN}
       http:
         paths:
           - path: /
