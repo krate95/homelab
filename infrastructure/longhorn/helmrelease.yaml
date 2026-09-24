@@ -1,4 +1,3 @@
----
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -17,12 +16,12 @@ spec:
   values:
     persistence:
       defaultClass: false
-      defaultClassReplicaCount: 1
+      defaultClassReplicaCount: 3
       defaultFsType: ext4
       reclaimPolicy: Delete
     defaultSettings:
       defaultDataPath: /var/mnt/longhorn
-      defaultReplicaCount: 1
+      defaultReplicaCount: 3
       storageOverProvisioningPercentage: 100
       storageMinimalAvailablePercentage: 25
       storageReservedPercentageForDefaultDisk: 20
