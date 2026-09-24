@@ -52,6 +52,6 @@ spec:
       - example.com
     sources:
       - crd
-    policy: upsert-only
+    policy: sync
     txtOwnerId: talos
     txtWildcardReplacement: "wildcard"
