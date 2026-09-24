@@ -39,6 +39,7 @@ spec:
       create: true
       defaultClass: true
       name: nfs-client
+      reclaimPolicy: Retain
 
     podSecurityPolicy:
       enabled: false
