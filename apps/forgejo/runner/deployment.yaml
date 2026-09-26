@@ -11,7 +11,7 @@ metadata:
     app.kubernetes.io/instance: forgejo-runner
     app.kubernetes.io/component: runner
 spec:
-  replicas: 0
+  replicas: 1
   strategy:
     type: Recreate
   selector:
