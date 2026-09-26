@@ -100,6 +100,10 @@ spec:
               name: forgejo-config
             - mountPath: /data
               name: forgejo-data
+            - mountPath: /data/git
+              name: forgejo-git
+            - mountPath: /data/lfs
+              name: forgejo-lfs
       restartPolicy: Always
 
       volumes:
@@ -109,3 +113,9 @@ spec:
         - name: forgejo-data
           persistentVolumeClaim:
             claimName: forgejo-data-longhorn
+        - name: forgejo-git
+          persistentVolumeClaim:
+            claimName: forgejo-git-nfs
+        - name: forgejo-lfs
+          persistentVolumeClaim:
+            claimName: forgejo-lfs-nfs
