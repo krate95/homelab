@@ -63,6 +63,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m
+  path: ./apps/miniflux
   prune: true
   sourceRef:
     kind: GitRepository
