@@ -10,7 +10,7 @@ data:
     if [ -n "$${POSTGRES_NON_ROOT_USER:-}" ] && [ -n "$${POSTGRES_NON_ROOT_PASSWORD:-}" ]; then
       if [ "$${POSTGRES_NON_ROOT_USER}" != "$${POSTGRES_USER}" ]; then
         psql -v ON_ERROR_STOP=1 --username "$$POSTGRES_USER" --dbname "$$POSTGRES_DB" <<-EOSQL
-          CREATE USER "$${POSTGRES_NON_ROOT_USER}" WITH PASSWORD '${POSTGRES_NON_ROOT_PASSWORD}';
+          CREATE USER "$${POSTGRES_NON_ROOT_USER}" WITH PASSWORD '$${POSTGRES_NON_ROOT_PASSWORD}';
         EOSQL
       fi
 
