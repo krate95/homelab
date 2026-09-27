@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: n8n
+  namespace: n8n
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: traefik-local-only@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: n8n.${BASE_DOMAIN}
+      http:
+        paths:
+          - backend:
+              service:
+                name: n8n
+                port:
+                  number: 5678
+            path: /
+            pathType: Prefix
