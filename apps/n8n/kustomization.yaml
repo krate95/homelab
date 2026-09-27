@@ -5,6 +5,7 @@ resources:
   - n8n-claim0-pvc.yaml
   - postgres-claim0-pvc.yaml
   - secrets/postgres-secret.yaml
+  - secrets/n8n-secret.yaml
   - postgres-configmap.yaml
   - postgres-service.yaml
   - postgres-deployment.yaml
