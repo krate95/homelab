@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: openspeedtest
+  namespace: openspeedtest
+  labels:
+    app.kubernetes.io/name: openspeedtest
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: traefik-local-only@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: "speedtest.${BASE_DOMAIN}"
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: openspeedtest
+                port:
+                  number: 3000
