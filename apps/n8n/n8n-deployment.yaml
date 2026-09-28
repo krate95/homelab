@@ -43,6 +43,8 @@ spec:
           env:
             - name: GENERIC_TIMEZONE
               value: Europe/Madrid
+            - name: NODE_FUNCTION_ALLOW_BUILTIN
+              value: crypto
             - name: N8N_SECURE_COOKIE
               value: "false"
             - name: DB_TYPE
