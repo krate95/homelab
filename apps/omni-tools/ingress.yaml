@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: omni-tools
+  namespace: omni-tools
+  labels:
+    app.kubernetes.io/name: omni-tools
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: traefik-local-only@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: "omni-tools.${BASE_DOMAIN}"
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: omni-tools
+                port:
+                  number: 80

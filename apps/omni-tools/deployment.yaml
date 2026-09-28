@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: omni-tools
+  namespace: omni-tools
+  labels:
+    app.kubernetes.io/name: omni-tools
+    app.kubernetes.io/instance: omni-tools
+    app.kubernetes.io/component: server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: omni-tools
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: omni-tools
+        app.kubernetes.io/instance: omni-tools
+        app.kubernetes.io/component: server
+        policy-type: "app"
+
+    spec:
+      priorityClassName: homelab-low
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: homelab/performance
+                    operator: In
+                    values:
+                      - low
+      containers:
+        - name: omni-tools
+          image: iib0011/omni-tools:0.6.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "25m"
+            limits:
+              memory: "256Mi"
+
+      restartPolicy: Always
