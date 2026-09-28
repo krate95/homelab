@@ -10,7 +10,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: "tools.${BASE_DOMAIN}"
+    - host: "it-tools.${BASE_DOMAIN}"
       http:
         paths:
           - path: "/"
