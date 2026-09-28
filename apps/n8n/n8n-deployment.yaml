@@ -41,6 +41,8 @@ spec:
             - -c
             - sleep 5; n8n start
           env:
+            - name: GENERIC_TIMEZONE
+              value: Europe/Madrid
             - name: N8N_SECURE_COOKIE
               value: "false"
             - name: DB_TYPE
