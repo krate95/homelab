@@ -66,6 +66,15 @@ spec:
                 secretKeyRef:
                   name: n8n-secret
                   key: N8N_ENCRYPTION_KEY
+            - name: N8N_BLOCK_ENV_ACCESS_IN_NODE
+              value: "false"
+            - name: MINIFLUX_URL
+              value: http://miniflux.miniflux.svc.cluster.local:8080
+            - name: MINIFLUX_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secret
+                  key: MINIFLUX_WEBHOOK_SECRET
             - name: N8N_PROTOCOL
               value: https
             - name: N8N_HOST
