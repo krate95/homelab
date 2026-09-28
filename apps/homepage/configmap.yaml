@@ -64,9 +64,13 @@ data:
             description: Lector de feeds RSS
             icon: sh-miniflux.webp
         - IT-Tools:
-            href: https://tools.${BASE_DOMAIN}
+            href: https://it-tools.${BASE_DOMAIN}
             description: Herramientas IT
             icon: sh-it-tools.webp
+        - OmniTools:
+            href: https://omni-tools.${BASE_DOMAIN}
+            description: Herramientas de ficheros y utilidades
+            icon: sh-omnitools.webp
         - OpenSpeedTest:
             href: https://speedtest.${BASE_DOMAIN}
             description: Test de velocidad
