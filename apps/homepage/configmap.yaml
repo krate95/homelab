@@ -75,6 +75,10 @@ data:
             href: https://speedtest.${BASE_DOMAIN}
             description: Test de velocidad
             icon: sh-openspeedtest.webp
+        - SearXNG:
+            href: https://search.${BASE_DOMAIN}
+            description: Buscador web
+            icon: sh-searxng.webp
 
     - Infrastructure:
         - Longhorn:

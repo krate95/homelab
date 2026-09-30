@@ -1,0 +1,23 @@
+# https://kubernetes.io/docs/concepts/configuration/configmap/
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: searxng-config
+  namespace: searxng
+data:
+  settings.yml: |
+    use_default_settings: true
+    general:
+      instance_name: "SearXNG"
+    server:
+      limiter: false
+      public_instance: false
+      image_proxy: true
+    search:
+      safe_search: 0
+      default_lang: "es"
+      formats:
+        - html
+        - json
+    ui:
+      default_locale: es
