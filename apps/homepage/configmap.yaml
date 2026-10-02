@@ -63,6 +63,10 @@ data:
             href: https://miniflux.${BASE_DOMAIN}
             description: Lector de feeds RSS
             icon: sh-miniflux.webp
+        - Dawarich:
+            href: https://dawarich.${BASE_DOMAIN}
+            description: Historial de ubicaciones
+            icon: sh-dawarich.webp
         - IT-Tools:
             href: https://it-tools.${BASE_DOMAIN}
             description: Herramientas IT

@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dawarich-photon
+  namespace: dawarich
+  labels:
+    app.kubernetes.io/name: dawarich
+    app.kubernetes.io/component: photon
+spec:
+  replicas: 0
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: dawarich-photon
+  template:
+    metadata:
+      labels:
+        app: dawarich-photon
+        app.kubernetes.io/name: dawarich
+        app.kubernetes.io/component: photon
+    spec:
+      priorityClassName: homelab-medium
+      securityContext:
+        fsGroup: 9011
+        fsGroupChangePolicy: OnRootMismatch
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: homelab/performance
+                    operator: In
+                    values:
+                      - high
+      containers:
+        - name: dawarich-photon
+          image: rtuszik/photon-docker:2.4.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: REGION
+              value: europe
+            - name: UPDATE_STRATEGY
+              value: DISABLED
+            - name: PHOTON_LISTEN_IP
+              value: 0.0.0.0
+            - name: PUID
+              value: "9011"
+            - name: PGID
+              value: "9011"
+          ports:
+            - name: http
+              containerPort: 2322
+              protocol: TCP
+          resources:
+            requests:
+              memory: 2Gi
+              cpu: 500m
+            limits:
+              memory: 6Gi
+              cpu: "2"
+          readinessProbe:
+            httpGet:
+              path: /api?q=Madrid
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 240
+          volumeMounts:
+            - name: dawarich-photon-data
+              mountPath: /photon/data
+      restartPolicy: Always
+      volumes:
+        - name: dawarich-photon-data
+          persistentVolumeClaim:
+            claimName: dawarich-photon-data

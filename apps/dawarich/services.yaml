@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dawarich-db
+  namespace: dawarich
+  labels:
+    app.kubernetes.io/name: dawarich
+    app.kubernetes.io/component: database
+spec:
+  type: ClusterIP
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+      protocol: TCP
+  selector:
+    app: dawarich-db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dawarich-redis
+  namespace: dawarich
+  labels:
+    app.kubernetes.io/name: dawarich
+    app.kubernetes.io/component: redis
+spec:
+  type: ClusterIP
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: redis
+      protocol: TCP
+  selector:
+    app: dawarich-redis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dawarich-app
+  namespace: dawarich
+  labels:
+    app.kubernetes.io/name: dawarich
+    app.kubernetes.io/component: app
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http
+      protocol: TCP
+  selector:
+    app: dawarich-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dawarich-photon
+  namespace: dawarich
+  labels:
+    app.kubernetes.io/name: dawarich
+    app.kubernetes.io/component: photon
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 2322
+      targetPort: http
+      protocol: TCP
+  selector:
+    app: dawarich-photon

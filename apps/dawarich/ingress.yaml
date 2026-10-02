@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dawarich
+  namespace: dawarich
+  labels:
+    app.kubernetes.io/name: dawarich
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: traefik-local-only@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: dawarich.${BASE_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: dawarich-app
+                port:
+                  number: 3000
