@@ -21,6 +21,15 @@ spec:
         app.kubernetes.io/component: app
     spec:
       priorityClassName: homelab-medium
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -35,6 +44,11 @@ spec:
         - name: dawarich-app
           image: freikin/dawarich:1.15.3
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           command:
             - web-entrypoint.sh
           args:
@@ -93,6 +107,11 @@ spec:
         - name: dawarich-sidekiq
           image: freikin/dawarich:1.15.3
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           command:
             - sidekiq-entrypoint.sh
           args:
