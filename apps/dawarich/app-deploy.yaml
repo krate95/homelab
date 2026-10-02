@@ -36,7 +36,7 @@ spec:
                       - high
       containers:
         - name: dawarich-app
-          image: freikin/dawarich:1.14.0
+          image: freikin/dawarich:1.15.3
           imagePullPolicy: IfNotPresent
           command:
             - web-entrypoint.sh
@@ -94,7 +94,7 @@ spec:
               mountPath: /var/app/storage
 
         - name: dawarich-sidekiq
-          image: freikin/dawarich:1.14.0
+          image: freikin/dawarich:1.15.3
           imagePullPolicy: IfNotPresent
           command:
             - sidekiq-entrypoint.sh
