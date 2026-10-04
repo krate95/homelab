@@ -6,7 +6,9 @@ metadata:
   labels:
     app.kubernetes.io/name: openspeedtest
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: traefik-local-only@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares:
+      openspeedtest-openspeedtest-buffering@kubernetescrd,
+      traefik-local-only@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:

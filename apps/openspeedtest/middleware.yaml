@@ -1,0 +1,11 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: openspeedtest-buffering
+  namespace: openspeedtest
+spec:
+  buffering:
+    # Read the full upload before forwarding. OpenSpeedTest's nginx replies
+    # without consuming the body, which makes Traefik cut uploads short.
+    # Matches the container's client_max_body_size (35m).
+    maxRequestBodyBytes: 36700160
