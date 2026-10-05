@@ -115,7 +115,7 @@ spec:
             claimName: forgejo-data-longhorn
         - name: forgejo-git
           persistentVolumeClaim:
-            claimName: forgejo-git-nfs
+            claimName: forgejo-git-data
         - name: forgejo-lfs
           persistentVolumeClaim:
-            claimName: forgejo-lfs-nfs
+            claimName: forgejo-lfs-data

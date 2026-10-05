@@ -56,3 +56,62 @@ spec:
     requests:
       storage: 10Gi
 ---
+# Static PVs on /export/data (plain ext4): the mergerfs /raid export returns
+# ESTALE on renamed files, which breaks git (config.lock -> config).
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-forgejo-git-data
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  nfs:
+    server: 192.168.1.2
+    path: /data/k8s/forgejo/git
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: forgejo-git-data
+  namespace: forgejo
+spec:
+  storageClassName: ""
+  volumeName: pv-forgejo-git-data
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-forgejo-lfs-data
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  nfs:
+    server: 192.168.1.2
+    path: /data/k8s/forgejo/lfs
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: forgejo-lfs-data
+  namespace: forgejo
+spec:
+  storageClassName: ""
+  volumeName: pv-forgejo-lfs-data
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
