@@ -36,7 +36,8 @@ data:
   # Repository Settings
   # ============================================================
   FORGEJO__repository__ROOT: /data/git
-
+  FORGEJO__git_0X2E_timeout_MIGRATE: "7200"
+  FORGEJO__git_0X2E_timeout__MIRROR: "3600"
   # ============================================================
   # Actions (CI/CD) — enable Forgejo Actions
   # ============================================================
