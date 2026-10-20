@@ -42,28 +42,27 @@ All three nodes are control-plane nodes that also run workloads, so the cluster 
 
 ```mermaid
 flowchart TB
-    subgraph git["GitHub: krate95/homelab"]
-        repo[(main branch)]
+    gh[("GitHub repo<br/>krate95/homelab")]
+    users["LAN and WireGuard clients"]
+    cf["Cloudflare DNS"]
+    nas[("NAS<br/>NFS")]
+
+    subgraph cluster["Talos cluster: 3 bare-metal nodes"]
+        flux["Flux<br/>SOPS decryption"]
+        ingress["MetalLB + Traefik<br/>LAN/VPN allowlist"]
+        dns["cert-manager + external-dns"]
+        apps["Apps<br/>Forgejo, n8n, Miniflux, AdGuard, ..."]
+        lh[("Longhorn<br/>3 replicas")]
+        flux -- "reconcile" --> apps
+        ingress --> apps
+        apps --> lh
     end
 
-    subgraph cluster["Talos cluster: roshar (3 nodes)"]
-        flux[Flux] --> vars[cluster-vars<br/>SOPS secret]
-        flux --> infra[infrastructure<br/>Helm releases]
-        infra --> cfg[*-config<br/>CRD-dependent resources]
-        cfg --> apps[apps]
-
-        metallb[MetalLB L2] --> traefik[Traefik<br/>DaemonSet]
-        traefik --> apps
-        longhorn[(Longhorn<br/>3 replicas)]
-        apps --> longhorn
-    end
-
-    repo -- pull --> flux
-    certm[cert-manager] -- DNS-01 --> cf[Cloudflare DNS]
-    extdns[external-dns] -- public IP record --> cf
-    longhorn -- nightly backup --> nas[(NAS · NFS)]
-    apps -- NFS volumes --> nas
-    lan[LAN / WireGuard clients] --> metallb
+    gh -- "pull" --> flux
+    users -- "HTTPS / Git SSH" --> ingress
+    dns -- "DNS-01 + public IP record" --> cf
+    lh -- "nightly backup" --> nas
+    apps -- "NFS volumes" --> nas
 ```
 
 ### Reconciliation order
