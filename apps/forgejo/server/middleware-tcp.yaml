@@ -1,0 +1,13 @@
+# Same ranges as the HTTP local-only middleware (infrastructure/traefik-config),
+# applied to the Git-over-SSH TCP route.
+apiVersion: traefik.io/v1alpha1
+kind: MiddlewareTCP
+metadata:
+  name: local-only-tcp
+  namespace: forgejo
+spec:
+  ipAllowList:
+    sourceRange:
+      - ${LAN_CIDR}
+      - 10.0.0.0/24 # WireGuard (router)
+      - 10.244.0.0/16

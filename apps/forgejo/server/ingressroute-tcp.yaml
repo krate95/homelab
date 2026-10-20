@@ -8,6 +8,8 @@ spec:
     - forgejo-ssh
   routes:
     - match: HostSNI(`*`)
+      middlewares:
+        - name: local-only-tcp
       services:
         - name: forgejo
           port: 2222

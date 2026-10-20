@@ -8,4 +8,5 @@ resources:
   - deployment.yaml
   - networking.yaml
   - ingress.yaml
+  - middleware-tcp.yaml
   - ingressroute-tcp.yaml
