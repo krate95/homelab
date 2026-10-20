@@ -70,8 +70,8 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   nfs:
-    server: 192.168.1.2
-    path: /data/k8s/forgejo/git
+    server: ${NFS_SERVER_IP}
+    path: ${NFS_FORGEJO_PATH}/git
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -99,8 +99,8 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   nfs:
-    server: 192.168.1.2
-    path: /data/k8s/forgejo/lfs
+    server: ${NFS_SERVER_IP}
+    path: ${NFS_FORGEJO_PATH}/lfs
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
