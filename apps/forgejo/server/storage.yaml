@@ -25,37 +25,6 @@ spec:
     requests:
       storage: 2Gi
 ---
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: forgejo-git-nfs
-  namespace: forgejo
-  labels:
-    app: forgejo-git-nfs
-spec:
-  storageClassName: nfs-client
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 20Gi
----
-# https://kubernetes.io/docs/concepts/storage/persistent-volumes/
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: forgejo-lfs-nfs
-  namespace: forgejo
-  labels:
-    app: forgejo-lfs-nfs
-spec:
-  storageClassName: nfs-client
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
----
 # Static PVs on /export/data (plain ext4): the mergerfs /raid export returns
 # ESTALE on renamed files, which breaks git (config.lock -> config).
 apiVersion: v1
