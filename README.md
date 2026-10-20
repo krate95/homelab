@@ -170,6 +170,10 @@ flux bootstrap github \
 
 Flux then installs everything else in dependency order.
 
+## AI assistance
+
+This repository was built with the help of AI tools. AI wrote the documentation (including this README), helped me troubleshoot problems along the way, and supported my decision-making by helping me research best practices and weigh trade-offs. I wrote the manifests myself, apart from small edits made by the AI, and I reviewed every change before it was committed.
+
 ## Roadmap
 
 - [ ] Monitoring stack (Prometheus, Grafana, alerting)
