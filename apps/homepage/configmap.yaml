@@ -36,7 +36,7 @@ data:
     - Developer:
         - Homelab GitOps:
             - abbr: HL
-              href: https://github.com/krate95/taloslab
+              href: https://github.com/krate95/homelab
         - Github:
             - abbr: GH
               href: https://github.com/krate95
