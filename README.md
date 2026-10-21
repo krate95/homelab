@@ -20,7 +20,7 @@ This repository is the single source of truth for the cluster, and also a record
 
 - **Immutable OS**: Talos on three bare-metal nodes. No SSH and no package manager; the nodes are configured only through the Talos API.
 - **GitOps end to end**: Flux reconciles the cluster from `main`, and Kustomizations are ordered with `dependsOn` so CRDs exist before the resources that use them.
-- **No secrets or network details in git**: secrets are encrypted with SOPS/age. The domain, IP ranges and NFS paths are injected at reconcile time from an encrypted `cluster-vars` Secret.
+- **No secrets or network details in git**: secrets are encrypted with SOPS/age. The domain, ACME email, IP ranges and NFS paths are injected at reconcile time from an encrypted `cluster-vars` Secret.
 - **Replicated storage with off-cluster backups**: Longhorn keeps 3 replicas of every volume and takes nightly backups to a NAS over NFS.
 - **Automatic TLS and DNS**: cert-manager issues a wildcard Let's Encrypt certificate via Cloudflare DNS-01, and external-dns keeps the public record in sync with a dynamic home IP.
 - **Private by default**: every ingress, HTTP and TCP, is restricted to the LAN and the WireGuard VPN through Traefik allowlists.
@@ -71,7 +71,7 @@ Flux applies the cluster in layers. Each layer waits for the previous one to be 
 
 ```
 flux-system
-└── cluster-vars            # encrypted Secret with domain, IP ranges, NFS paths
+└── cluster-vars            # encrypted Secret with domain, email, IP ranges, NFS paths
     └── infrastructure      # HelmReleases: Longhorn, MetalLB, Traefik, cert-manager, external-dns, NFS provisioner
         ├── metallb-config        # IPAddressPool, L2Advertisement
         ├── cert-manager-config   # ClusterIssuer (Let's Encrypt, Cloudflare DNS-01)
@@ -117,7 +117,7 @@ The `*-config` layers are split out because they use CRDs installed by the Helm 
 
 ### Secrets and environment-specific values
 
-`.sops.yaml` encrypts any file under a `secrets/` directory with an age key that only exists on my workstation and in the cluster. Values that aren't secret but still shouldn't be public (base domain, LAN CIDR, MetalLB range, NFS server and paths) live in `clusters/roshar/secrets/cluster-vars.yaml`. Each Flux Kustomization pulls them in with `postBuild.substituteFrom`, so manifests reference `${BASE_DOMAIN}` or `${NFS_SERVER_IP}` instead of hard-coded values.
+`.sops.yaml` encrypts any file under a `secrets/` directory with an age key that only exists on my workstation and in the cluster. Values that aren't secret but still shouldn't be public (base domain, ACME email, LAN/WireGuard/pod CIDRs, MetalLB range, NFS server and paths) live in `clusters/roshar/secrets/cluster-vars.yaml`. Each Flux Kustomization pulls them in with `postBuild.substituteFrom`, so manifests reference `${BASE_DOMAIN}` or `${NFS_SERVER_IP}` instead of hard-coded values.
 
 ### Dynamic public IP without committing it
 

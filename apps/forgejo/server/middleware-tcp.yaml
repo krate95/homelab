@@ -9,5 +9,5 @@ spec:
   ipAllowList:
     sourceRange:
       - ${LAN_CIDR}
-      - 10.0.0.0/24 # WireGuard (router)
-      - 10.244.0.0/16
+      - ${WIREGUARD_CIDR}
+      - ${POD_CIDR}
