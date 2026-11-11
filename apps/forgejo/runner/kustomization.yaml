@@ -6,10 +6,17 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - secrets/forgejo-secret.yaml
-  - configmap.yaml
   - pvc.yaml
   - deployment.yaml
   # - networkpolicy.yaml
+
+# Generated with a content hash in its name, so any change to config.yaml
+# rolls the runner pod (a plain ConfigMap change would not restart it).
+configMapGenerator:
+  - name: forgejo-runner-config
+    namespace: forgejo-runner
+    files:
+      - config.yaml
 
 # Is this overwhelming?
 # https://kubecraft.click/forgejo-k8s
