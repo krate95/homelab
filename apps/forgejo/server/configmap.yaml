@@ -50,6 +50,12 @@ data:
   FORGEJO__api__MAX_RESPONSE_ITEMS: "1000"
 
   # ============================================================
+  # Packages — disabled; container images go to the NFS-backed
+  # docker-registry app instead of Forgejo's Longhorn data volume
+  # ============================================================
+  FORGEJO__packages__ENABLED: "false"
+
+  # ============================================================
   # Queue Settings
   # ============================================================
   FORGEJO__queue__MAX_WORKERS: "10"
