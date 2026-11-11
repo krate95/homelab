@@ -112,6 +112,7 @@ The `*-config` layers are split out because they use CRDs installed by the Helm 
 | [Dawarich](https://dawarich.app/) | Self-hosted location history, with PostGIS and a local Photon geocoder |
 | [IT-Tools](https://it-tools.tech/) / [Omni-Tools](https://github.com/iib0011/omni-tools) | Developer utilities |
 | [OpenSpeedTest](https://openspeedtest.com/) | LAN speed test |
+| [Docker Registry](https://distribution.github.io/distribution/) | Private container image registry, stored on the NAS over NFS |
 
 ## Design decisions
 

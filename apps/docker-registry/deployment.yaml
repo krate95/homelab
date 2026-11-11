@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docker-registry
+  namespace: docker-registry
+  labels:
+    app.kubernetes.io/name: docker-registry
+    app.kubernetes.io/instance: docker-registry
+    app.kubernetes.io/component: registry
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: docker-registry
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: docker-registry
+        app.kubernetes.io/instance: docker-registry
+        app.kubernetes.io/component: registry
+        policy-type: "app"
+    spec:
+      priorityClassName: homelab-medium
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: homelab/performance
+                    operator: In
+                    values:
+                      - low
+      containers:
+        - name: registry
+          image: registry:3
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: REGISTRY_HTTP_ADDR
+              value: 0.0.0.0:5000
+            - name: REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY
+              value: /var/lib/registry
+            - name: REGISTRY_STORAGE_DELETE_ENABLED
+              value: "true"
+          ports:
+            - containerPort: 5000
+              name: http
+              protocol: TCP
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /v2/
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /v2/
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: registry-data
+              mountPath: /var/lib/registry
+      restartPolicy: Always
+      volumes:
+        - name: registry-data
+          persistentVolumeClaim:
+            claimName: registry-data

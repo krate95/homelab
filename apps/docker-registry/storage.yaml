@@ -1,0 +1,31 @@
+# Static PV on the plain ext4 export (not the mergerfs /raid one): the registry
+# moves finished uploads into place with rename(), which hits ESTALE on mergerfs.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-docker-registry-data
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  nfs:
+    server: ${NFS_SERVER_IP}
+    path: ${NFS_REGISTRY_PATH}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: registry-data
+  namespace: docker-registry
+spec:
+  storageClassName: ""
+  volumeName: pv-docker-registry-data
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi

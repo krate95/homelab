@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: docker-registry
+  namespace: docker-registry
+  labels:
+    app.kubernetes.io/name: docker-registry
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: traefik-local-only@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: registry.${BASE_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: docker-registry
+                port:
+                  number: 5000
