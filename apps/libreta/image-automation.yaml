@@ -1,0 +1,59 @@
+# Deploys every build of main that passed CI in Forgejo. CI publishes
+# main-<commit time UTC>-<short sha>; the newest one wins, Flux writes its tag
+# into kustomization.yaml (the $imagepolicy marker) and commits it to this
+# repository. Only the tag is written, so the registry's domain stays in
+# cluster-vars instead of in git.
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: libreta
+  namespace: flux-system
+spec:
+  image: registry.${BASE_DOMAIN}/krate95/savings
+  interval: 2m
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: libreta
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: libreta
+  # The timestamp has a fixed width, so alphabetical order is time order. (No
+  # named group with extract: '$ts', which Flux's postBuild substitution
+  # would have to be told to leave alone.)
+  filterTags:
+    pattern: '^main-[0-9]{14}-[0-9a-f]+$'
+  policy:
+    alphabetical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageUpdateAutomation
+metadata:
+  name: libreta
+  namespace: flux-system
+spec:
+  interval: 2m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        name: fluxcdbot
+        email: fluxcdbot@users.noreply.github.com
+      messageTemplate: |
+        update: deploy libreta {{ range .Changed.Changes }}{{ .NewValue }}{{ end }}
+
+        Flux image automation picked the newest build of main published by
+        Forgejo CI.
+    push:
+      branch: main
+  update:
+    path: ./apps/libreta
+    strategy: Setters

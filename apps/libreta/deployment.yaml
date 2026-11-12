@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: libreta
+  name: libreta
+  namespace: libreta
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: libreta
+  # SQLite on a ReadWriteOnce volume: the old pod must stop before the new one opens the database.
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        service: libreta
+    spec:
+      priorityClassName: homelab-medium
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: homelab/performance
+                    operator: In
+                    values:
+                      - medium
+      containers:
+        - name: libreta
+          # Registry and tag are set in kustomization.yaml (images).
+          image: libreta
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          env:
+            - name: SQLITE_PATH
+              value: /data/savings.db
+            # Traefik is the only proxy in front, so trust one hop for the client address
+            # (the login and API key throttling is per client).
+            - name: TRUST_PROXY
+              value: "true"
+            - name: COOKIE_SECURE
+              value: "true"
+            - name: TZ
+              value: Europe/Madrid
+          ports:
+            - name: http
+              containerPort: 3000
+          startupProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: 2
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              memory: 256Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: libreta-data
+        - name: tmp
+          emptyDir:
+            sizeLimit: 64Mi
