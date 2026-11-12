@@ -13,7 +13,7 @@ spec:
   volumeMode: Filesystem
   resources:
     requests:
-      storage: 10Gi # Docker image cache — adjust as needed
+      storage: 25Gi # Docker image cache — adjust as needed
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
