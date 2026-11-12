@@ -167,8 +167,13 @@ kubectl -n flux-system create secret generic sops-age \
 # 2. Bootstrap Flux against this repository
 flux bootstrap github \
   --owner=krate95 --repository=homelab \
-  --branch=main --path=clusters/roshar --personal
+  --branch=main --path=clusters/roshar --personal \
+  --components-extra=image-reflector-controller,image-automation-controller \
+  --read-write-key
 ```
+
+The image controllers and the read-write deploy key let Flux commit new image
+tags back to this repository (see Libreta in `apps/libreta`).
 
 Flux then installs everything else in dependency order.
 
