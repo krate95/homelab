@@ -71,7 +71,11 @@ spec:
               value: normal
             - name: MAX_PLAYERS
               value: "10"
+            # Chunks sent to clients. Simulation (mobs, crops, redstone) stays at
+            # 10 so only terrain loading and generation get heavier.
             - name: VIEW_DISTANCE
+              value: "24"
+            - name: SIMULATION_DISTANCE
               value: "10"
             - name: ONLINE_MODE
               value: "true"
