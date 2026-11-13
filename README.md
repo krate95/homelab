@@ -114,6 +114,7 @@ The `*-config` layers are split out because they use CRDs installed by the Helm 
 | [OpenSpeedTest](https://openspeedtest.com/) | LAN speed test |
 | Libreta | Shared household finances; built by Forgejo CI and deployed by Flux image automation on every push to main |
 | [Docker Registry](https://distribution.github.io/distribution/) | Private container image registry, stored on the NAS over NFS |
+| [Minecraft](https://docker-minecraft-server.readthedocs.io/) (itzg) | Vanilla Java server on Longhorn, reached through a Traefik TCP entrypoint; a backup sidecar writes tarballs to the NAS every 6h |
 
 ## Design decisions
 

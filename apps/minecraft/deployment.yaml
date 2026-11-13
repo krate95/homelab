@@ -1,0 +1,169 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minecraft
+  namespace: minecraft
+  labels:
+    app.kubernetes.io/name: minecraft
+spec:
+  replicas: 1
+  # The world is on a ReadWriteOnce volume and must never be opened by two servers.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: minecraft
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: minecraft
+        policy-type: "app"
+    spec:
+      priorityClassName: homelab-low
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      # Give the server time to save the world after SIGTERM.
+      terminationGracePeriodSeconds: 120
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: homelab/performance
+                    operator: In
+                    values:
+                      - high
+      containers:
+        - name: minecraft
+          image: itzg/minecraft-server:2026.11.0-java25
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          env:
+            - name: EULA
+              value: "TRUE"
+            - name: TYPE
+              value: VANILLA
+            # Pinned so a restart never upgrades the world by surprise.
+            - name: VERSION
+              value: "26.3"
+            - name: MEMORY
+              value: 4G
+            - name: USE_AIKAR_FLAGS
+              value: "true"
+            - name: TZ
+              value: Europe/Madrid
+            - name: MOTD
+              value: Roshar
+            - name: DIFFICULTY
+              value: normal
+            - name: MAX_PLAYERS
+              value: "10"
+            - name: VIEW_DISTANCE
+              value: "10"
+            - name: ONLINE_MODE
+              value: "true"
+            - name: ENABLE_RCON
+              value: "true"
+            - name: RCON_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: minecraft-rcon
+                  key: RCON_PASSWORD
+          ports:
+            - name: minecraft
+              containerPort: 25565
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 4Gi
+            limits:
+              memory: 5Gi
+          # First boot downloads the server jar and generates the world.
+          startupProbe:
+            exec:
+              command: ["mc-health"]
+            periodSeconds: 10
+            failureThreshold: 60
+          readinessProbe:
+            exec:
+              command: ["mc-health"]
+            periodSeconds: 30
+            timeoutSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["mc-health"]
+            periodSeconds: 60
+            timeoutSeconds: 10
+            failureThreshold: 5
+          volumeMounts:
+            - name: data
+              mountPath: /data
+
+        # Pauses autosave over RCON, tars /data to the NAS and prunes old archives.
+        - name: backup
+          image: itzg/mc-backup:2026.11.0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          env:
+            - name: BACKUP_METHOD
+              value: tar
+            - name: BACKUP_NAME
+              value: world
+            - name: BACKUP_INTERVAL
+              value: 6h
+            - name: INITIAL_DELAY
+              value: 5m
+            - name: PRUNE_BACKUPS_DAYS
+              value: "7"
+            - name: PAUSE_IF_NO_PLAYERS
+              value: "true"
+            - name: SRC_DIR
+              value: /data
+            - name: DEST_DIR
+              value: /backups
+            - name: RCON_HOST
+              value: localhost
+            - name: RCON_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: minecraft-rcon
+                  key: RCON_PASSWORD
+            - name: TZ
+              value: Europe/Madrid
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+              readOnly: true
+            - name: backups
+              mountPath: /backups
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: minecraft-data
+        - name: backups
+          persistentVolumeClaim:
+            claimName: minecraft-backups

@@ -1,0 +1,48 @@
+# The live world stays on Longhorn: region files get many small random writes on
+# every autosave, and level.dat is saved via rename(), which hits ESTALE on the
+# mergerfs export. Longhorn's nightly backup covers this volume as well.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minecraft-data
+  namespace: minecraft
+spec:
+  storageClassName: longhorn-rwo-retain
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+# Static PV for the mc-backup tarballs on the NAS (/raid). Each backup is written
+# straight to a new file and pruned with unlink, so mergerfs renames don't apply.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-minecraft-backups
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  nfs:
+    server: ${NFS_SERVER_IP}
+    path: ${NFS_MINECRAFT_BACKUP_PATH}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minecraft-backups
+  namespace: minecraft
+spec:
+  storageClassName: ""
+  volumeName: pv-minecraft-backups
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
