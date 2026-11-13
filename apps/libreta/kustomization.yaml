@@ -11,4 +11,4 @@ images:
   - name: libreta
     # ${BASE_DOMAIN} is substituted by Flux after the build (postBuild).
     newName: registry.${BASE_DOMAIN}/krate95/savings
-    newTag: main-20261112144840-4d67c61 # {"$imagepolicy": "flux-system:libreta:tag"}
+    newTag: main-20261113155404-bcd68b3 # {"$imagepolicy": "flux-system:libreta:tag"}
