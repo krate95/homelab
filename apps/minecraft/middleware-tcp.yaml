@@ -1,0 +1,12 @@
+# Same ranges as the HTTP local-only middleware (infrastructure/traefik-config).
+apiVersion: traefik.io/v1alpha1
+kind: MiddlewareTCP
+metadata:
+  name: local-only-tcp
+  namespace: minecraft
+spec:
+  ipAllowList:
+    sourceRange:
+      - ${LAN_CIDR}
+      - ${WIREGUARD_CIDR}
+      - ${POD_CIDR}
