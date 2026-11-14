@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  namespace: norish
+spec:
+  storageClassName: longhorn-rwo-retain
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: valkey-data
+  namespace: norish
+spec:
+  storageClassName: longhorn-rwo-retain
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+---
+# Static PV on the plain ext4 export (not the mergerfs /raid one), like Forgejo
+# and the registry: mergerfs returns ESTALE on renamed files. The folder must
+# exist on the NAS and belong to 1000:1000, the user the app runs as (fsGroup
+# does not chown NFS volumes).
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-norish-uploads
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  nfs:
+    server: ${NFS_SERVER_IP}
+    path: ${NFS_NORISH_PATH}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: norish-uploads
+  namespace: norish
+spec:
+  storageClassName: ""
+  volumeName: pv-norish-uploads
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi

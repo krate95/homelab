@@ -1,0 +1,86 @@
+# Headless browser the app uses to import recipes from URLs. It only listens
+# beyond loopback when OBSCURA_CDP_TOKEN is set (32+ bytes), and every request
+# must carry that token.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: obscura
+  namespace: norish
+  labels:
+    app: obscura
+spec:
+  revisionHistoryLimit: 3
+  replicas: 1
+  selector:
+    matchLabels:
+      app: obscura
+  template:
+    metadata:
+      labels:
+        app: obscura
+    spec:
+      priorityClassName: homelab-low
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      # Distroless image with no USER line; run it as the distroless nonroot user.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: homelab/performance
+                    operator: In
+                    values:
+                      - high
+      containers:
+        - name: obscura
+          image: norishapp/obscura:0.2.5-norish.1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          env:
+            - name: OBSCURA_CDP_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: norish-secret
+                  key: OBSCURA_CDP_TOKEN
+            - name: HOME
+              value: /tmp
+          ports:
+            - name: cdp
+              containerPort: 9222
+              protocol: TCP
+          # The image has no shell or HTTP health endpoint.
+          readinessProbe:
+            tcpSocket:
+              port: cdp
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: cdp
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 1Gi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 512Mi
