@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: norish
+  namespace: norish
+  labels:
+    app: norish
+spec:
+  revisionHistoryLimit: 3
+  replicas: 1
+  # The uploads volume is ReadWriteOnce.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: norish
+  template:
+    metadata:
+      labels:
+        app: norish
+    spec:
+      priorityClassName: homelab-medium
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      # Started as a non-root user, the entrypoint skips its chown of the uploads
+      # folder and runs the server directly; the NAS folder is already 1000:1000.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: homelab/performance
+                    operator: In
+                    values:
+                      - medium
+      containers:
+        - name: norish
+          image: norishapp/norish:v0.26.1-beta
+          imagePullPolicy: IfNotPresent
+          # Root filesystem left writable: it is not documented where Next.js and
+          # yt-dlp write at runtime. Worth trying readOnlyRootFilesystem later.
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          # DATABASE_URL, MASTER_KEY (derives the encryption keys, must never change)
+          # and OBSCURA_CDP_TOKEN, SOPS-encrypted.
+          envFrom:
+            - secretRef:
+                name: norish-secret
+          env:
+            - name: AUTH_URL
+              value: https://norish.${BASE_DOMAIN}
+            - name: VALKEY_URL
+              value: valkey://valkey:6379
+            - name: OBSCURA_ENDPOINT
+              value: ws://obscura:9222
+            - name: UPLOADS_DIR
+              value: /app/uploads
+            - name: TZ
+              value: Europe/Madrid
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /api/v1/health/live
+              port: http
+            periodSeconds: 5
+            failureThreshold: 36
+          # ready = database and Valkey answer; live = the server and its parser answer.
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health/ready
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health/live
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 15
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 384Mi
+            limits:
+              memory: 1536Mi
+          volumeMounts:
+            - name: uploads
+              mountPath: /app/uploads
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: norish-uploads

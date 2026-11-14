@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: norish
+  namespace: norish
+  labels:
+    app: norish
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http
+      protocol: TCP
+  selector:
+    app: norish
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: norish
+  labels:
+    app: postgres
+spec:
+  type: ClusterIP
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+      protocol: TCP
+  selector:
+    app: postgres
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: valkey
+  namespace: norish
+  labels:
+    app: valkey
+spec:
+  type: ClusterIP
+  ports:
+    - name: valkey
+      port: 6379
+      targetPort: valkey
+      protocol: TCP
+  selector:
+    app: valkey
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: obscura
+  namespace: norish
+  labels:
+    app: obscura
+spec:
+  type: ClusterIP
+  ports:
+    - name: cdp
+      port: 9222
+      targetPort: cdp
+      protocol: TCP
+  selector:
+    app: obscura
