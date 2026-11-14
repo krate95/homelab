@@ -78,8 +78,10 @@ spec:
             # the AI provider reads the recipe from the transcript.
             - name: VIDEO_PARSING_ENABLED
               value: "true"
+            # 40 min, for full YouTube cooking videos (transcribed locally, so only
+            # the longer transcript costs anything on OpenRouter).
             - name: VIDEO_MAX_LENGTH_SECONDS
-              value: "600"
+              value: "2400"
             # whisper.cpp's server on the Mac mini (OpenAI-compatible, outside the cluster).
             - name: TRANSCRIPTION_PROVIDER
               value: generic-openai
