@@ -86,6 +86,10 @@ spec:
             # the longer transcript costs anything on OpenRouter).
             - name: VIDEO_MAX_LENGTH_SECONDS
               value: "2400"
+            # 500 MB. Videos are kept with the recipe at 1080p H.264 (about 18 MB a
+            # minute), so this keeps up to roughly 25 minutes of video per recipe.
+            - name: MAX_VIDEO_FILE_SIZE
+              value: "524288000"
             # whisper.cpp's server on the Mac mini (OpenAI-compatible, outside the cluster).
             - name: TRANSCRIPTION_PROVIDER
               value: generic-openai
