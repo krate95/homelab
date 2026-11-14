@@ -67,6 +67,10 @@ spec:
             # transcripts) and enrichment through OpenRouter.
             - name: AI_ENABLED
               value: "true"
+            # generic-openai, not the default openai: with openai Norish ignores
+            # AI_ENDPOINT and sends everything (and the key) to api.openai.com.
+            - name: AI_PROVIDER
+              value: generic-openai
             - name: AI_ENDPOINT
               value: https://openrouter.ai/api/v1
             - name: AI_MODEL
