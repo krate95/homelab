@@ -51,8 +51,8 @@ spec:
             capabilities:
               drop:
                 - ALL
-          # DATABASE_URL, MASTER_KEY (derives the encryption keys, must never change)
-          # and OBSCURA_CDP_TOKEN, SOPS-encrypted.
+          # DATABASE_URL, MASTER_KEY (derives the encryption keys, must never change),
+          # OBSCURA_CDP_TOKEN and AI_API_KEY (OpenRouter), SOPS-encrypted.
           envFrom:
             - secretRef:
                 name: norish-secret
@@ -63,6 +63,35 @@ spec:
               value: valkey://valkey:6379
             - name: OBSCURA_ENDPOINT
               value: ws://obscura:9222
+            # Recipe parsing (pages the scraper can't read, text, photos, video
+            # transcripts) and enrichment through OpenRouter.
+            - name: AI_ENABLED
+              value: "true"
+            - name: AI_ENDPOINT
+              value: https://openrouter.ai/api/v1
+            - name: AI_MODEL
+              value: openai/gpt-6-luna
+            # Lower than the default 1.0 so the structured output stays stable.
+            - name: AI_TEMPERATURE
+              value: "0.2"
+            # Video import: yt-dlp downloads it, Whisper transcribes the audio and
+            # the AI provider reads the recipe from the transcript.
+            - name: VIDEO_PARSING_ENABLED
+              value: "true"
+            - name: VIDEO_MAX_LENGTH_SECONDS
+              value: "600"
+            # whisper.cpp's server on the Mac mini (OpenAI-compatible, outside the cluster).
+            - name: TRANSCRIPTION_PROVIDER
+              value: generic-openai
+            - name: TRANSCRIPTION_ENDPOINT
+              value: http://${MAC_MINI_IP}:8080/v1
+            # whisper.cpp ignores the model name.
+            - name: TRANSCRIPTION_MODEL
+              value: whisper-1
+            # whisper.cpp needs no key, but an empty one makes Norish fall back to
+            # AI_API_KEY and send the OpenRouter key to the Mac.
+            - name: TRANSCRIPTION_API_KEY
+              value: local
             - name: UPLOADS_DIR
               value: /app/uploads
             - name: TZ
