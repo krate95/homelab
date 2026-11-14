@@ -50,6 +50,10 @@ spec:
             capabilities:
               drop:
                 - ALL
+          # APP_PASSWORD (the shared password) and SESSION_SECRET (signs session cookies), SOPS-encrypted.
+          envFrom:
+            - secretRef:
+                name: libreta-secret
           env:
             - name: SQLITE_PATH
               value: /data/savings.db
@@ -59,6 +63,9 @@ spec:
               value: "true"
             - name: COOKIE_SECURE
               value: "true"
+            # Answer only to its own name (DNS rebinding defence); health probes are exempt.
+            - name: ALLOWED_HOSTS
+              value: libreta.${BASE_DOMAIN}
             - name: TZ
               value: Europe/Madrid
           ports:
