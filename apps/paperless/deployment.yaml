@@ -1,0 +1,140 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paperless
+  namespace: paperless
+  labels:
+    app: paperless
+spec:
+  revisionHistoryLimit: 3
+  replicas: 1
+  # The data volume is ReadWriteOnce, and two consumers would race on the inbox.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: paperless
+  template:
+    metadata:
+      labels:
+        app: paperless
+    spec:
+      priorityClassName: homelab-medium
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      # Rootless mode: started as a non-root user, the image skips its USERMAP_*
+      # remapping and runs everything as 1000:1000, the owner of the NAS folders.
+      # fsGroup makes the Longhorn data volume writable for it.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: homelab/performance
+                    operator: In
+                    values:
+                      - medium
+      containers:
+        - name: paperless
+          image: ghcr.io/paperless-ngx/paperless-ngx:3.5.1
+          imagePullPolicy: IfNotPresent
+          # Root filesystem left writable: s6-overlay writes to /run at startup.
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          # PAPERLESS_DBUSER/DBPASS/DBNAME, PAPERLESS_SECRET_KEY and the initial
+          # admin (PAPERLESS_ADMIN_USER/PASSWORD), SOPS-encrypted.
+          envFrom:
+            - secretRef:
+                name: paperless-secret
+          env:
+            - name: PAPERLESS_URL
+              value: https://paperless.${BASE_DOMAIN}
+            - name: PAPERLESS_DBENGINE
+              value: postgresql
+            - name: PAPERLESS_DBHOST
+              value: postgres
+            - name: PAPERLESS_REDIS
+              value: redis://valkey:6379
+            - name: PAPERLESS_TIME_ZONE
+              value: Europe/Madrid
+            # Spanish and English ship with the image; adding others through
+            # PAPERLESS_OCR_LANGUAGES needs root and breaks rootless mode.
+            - name: PAPERLESS_OCR_LANGUAGE
+              value: spa+eng
+            # The inbox is on NFS, which has no inotify: look for new files every 60 s.
+            - name: PAPERLESS_CONSUMER_POLLING_INTERVAL
+              value: "60"
+            # SFTP uploads from the phone can stall: wait until the file stops changing.
+            - name: PAPERLESS_CONSUMER_STABILITY_DELAY
+              value: "15"
+            # Subfolders of the inbox are scanned too, and their names become tags
+            # (inbox/facturas/x.pdf gets the tag "facturas").
+            - name: PAPERLESS_CONSUMER_RECURSIVE
+              value: "true"
+            - name: PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS
+              value: "true"
+            # One OCR job at a time keeps memory predictable.
+            - name: PAPERLESS_TASK_WORKERS
+              value: "1"
+            - name: PAPERLESS_THREADS_PER_WORKER
+              value: "2"
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          # The first boot runs every database migration. "/" answers with a
+          # redirect to the login page, which counts as healthy.
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              memory: 2Gi
+          volumeMounts:
+            - name: data
+              mountPath: /usr/src/paperless/data
+            - name: media
+              mountPath: /usr/src/paperless/media
+            - name: consume
+              mountPath: /usr/src/paperless/consume
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: paperless-data
+        - name: media
+          persistentVolumeClaim:
+            claimName: paperless-media
+        - name: consume
+          persistentVolumeClaim:
+            claimName: paperless-consume

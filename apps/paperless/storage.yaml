@@ -1,0 +1,143 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  namespace: paperless
+spec:
+  storageClassName: longhorn-rwo-retain
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: valkey-data
+  namespace: paperless
+spec:
+  storageClassName: longhorn-rwo-retain
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+---
+# Search index, the auto-tagging model and logs: small and written often.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless-data
+  namespace: paperless
+spec:
+  storageClassName: longhorn-rwo-retain
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 2Gi
+---
+# The three NAS volumes are static PVs on the plain ext4 export (not the
+# mergerfs /raid one), like Norish: mergerfs returns ESTALE on renamed files.
+# Each folder must exist on the NAS and belong to 1000:1000, the user Paperless
+# runs as (fsGroup does not chown NFS volumes).
+#
+# Originals and their PDF/A archive copies. ReadWriteMany because the nightly
+# exporter reads it while the app is running.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-paperless-media
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  nfs:
+    server: ${NFS_SERVER_IP}
+    path: ${NFS_PAPERLESS_MEDIA_PATH}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless-media
+  namespace: paperless
+spec:
+  storageClassName: ""
+  volumeName: pv-paperless-media
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 50Gi
+---
+# Inbox: whatever lands here (uploaded to the NAS over SSH/SFTP) is imported
+# and then removed.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-paperless-consume
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  nfs:
+    server: ${NFS_SERVER_IP}
+    path: ${NFS_PAPERLESS_CONSUME_PATH}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless-consume
+  namespace: paperless
+spec:
+  storageClassName: ""
+  volumeName: pv-paperless-consume
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+# Nightly document_exporter output: documents plus a manifest of every tag,
+# correspondent and setting, restorable with document_importer.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-paperless-export
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  nfs:
+    server: ${NFS_SERVER_IP}
+    path: ${NFS_PAPERLESS_EXPORT_PATH}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless-export
+  namespace: paperless
+spec:
+  storageClassName: ""
+  volumeName: pv-paperless-export
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
