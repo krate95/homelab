@@ -95,23 +95,33 @@ spec:
               containerPort: 8000
               protocol: TCP
           # The first boot runs every database migration. "/" answers with a
-          # redirect to the login page, which counts as healthy.
+          # redirect to the login page, which counts as healthy. PAPERLESS_URL
+          # restricts the allowed hosts, so the pod IP would get a 400.
           startupProbe:
             httpGet:
               path: /
               port: http
+              httpHeaders:
+                - name: Host
+                  value: paperless.${BASE_DOMAIN}
             periodSeconds: 5
             failureThreshold: 60
           readinessProbe:
             httpGet:
               path: /
               port: http
+              httpHeaders:
+                - name: Host
+                  value: paperless.${BASE_DOMAIN}
             periodSeconds: 10
             timeoutSeconds: 5
           livenessProbe:
             httpGet:
               path: /
               port: http
+              httpHeaders:
+                - name: Host
+                  value: paperless.${BASE_DOMAIN}
             periodSeconds: 30
             timeoutSeconds: 10
             failureThreshold: 5
