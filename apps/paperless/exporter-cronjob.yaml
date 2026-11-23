@@ -78,10 +78,9 @@ spec:
                 limits:
                   memory: 1Gi
               volumeMounts:
-                # Read-only: the exporter only reads the documents.
+                # Not read-only: Django's startup checks test that this path is writable.
                 - name: media
                   mountPath: /usr/src/paperless/media
-                  readOnly: true
                 - name: export
                   mountPath: /usr/src/paperless/export
                 # The real data volume is ReadWriteOnce and in use by the app; the
