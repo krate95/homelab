@@ -114,6 +114,7 @@ The `*-config` layers are split out because they use CRDs installed by the Helm 
 | [OpenSpeedTest](https://openspeedtest.com/) | LAN speed test |
 | Libreta | Shared household finances; built by Forgejo CI and deployed by Flux image automation on every push to main |
 | [Norish](https://github.com/norish-recipes/norish) | Recipe manager with URL imports through a headless browser; Postgres on Longhorn, uploaded photos on the NAS's ext4 export |
+| [Paperless-ngx](https://docs.paperless-ngx.com/) | Document manager with OCR (Spanish and English), running rootless; Postgres and the search index on Longhorn, documents and the import inbox on the NAS's ext4 export, plus a nightly `document_exporter` backup to the NAS |
 | [Docker Registry](https://distribution.github.io/distribution/) | Private container image registry, stored on the NAS over NFS |
 | [Minecraft](https://docker-minecraft-server.readthedocs.io/) (itzg) | Vanilla Java server on Longhorn, reached through a Traefik TCP entrypoint; a backup sidecar writes tarballs to the NAS every 6h |
 

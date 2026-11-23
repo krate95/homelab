@@ -1,0 +1,99 @@
+# Nightly backup with Paperless's own exporter, after Longhorn's 2 AM backups.
+# Longhorn already snapshots Postgres; this adds a restorable copy of documents
+# and metadata (document_importer) that does not depend on a database dump.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: paperless-exporter
+  namespace: paperless
+spec:
+  schedule: "0 3 * * *"
+  timeZone: Europe/Madrid
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          priorityClassName: homelab-medium
+          automountServiceAccountToken: false
+          enableServiceLinks: false
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          affinity:
+            nodeAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  preference:
+                    matchExpressions:
+                      - key: homelab/performance
+                        operator: In
+                        values:
+                          - medium
+          containers:
+            - name: exporter
+              image: ghcr.io/paperless-ngx/paperless-ngx:3.5.1
+              imagePullPolicy: IfNotPresent
+              # Calls manage.py directly instead of going through the image's /init,
+              # which would also start a second webserver, consumer and task worker.
+              workingDir: /usr/src/paperless/src
+              command:
+                - python3
+                - manage.py
+                - document_exporter
+                - /usr/src/paperless/export
+                # Only rewrite files whose checksum changed, and remove files of
+                # documents deleted since the last run.
+                - --compare-checksums
+                - --delete
+                - --no-progress-bar
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+              envFrom:
+                - secretRef:
+                    name: paperless-secret
+              env:
+                - name: PAPERLESS_DBENGINE
+                  value: postgresql
+                - name: PAPERLESS_DBHOST
+                  value: postgres
+                - name: PAPERLESS_REDIS
+                  value: redis://valkey:6379
+                - name: PAPERLESS_TIME_ZONE
+                  value: Europe/Madrid
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 256Mi
+                limits:
+                  memory: 1Gi
+              volumeMounts:
+                # Read-only: the exporter only reads the documents.
+                - name: media
+                  mountPath: /usr/src/paperless/media
+                  readOnly: true
+                - name: export
+                  mountPath: /usr/src/paperless/export
+                # The real data volume is ReadWriteOnce and in use by the app; the
+                # exporter only needs somewhere writable for its log file.
+                - name: scratch
+                  mountPath: /usr/src/paperless/data
+          volumes:
+            - name: media
+              persistentVolumeClaim:
+                claimName: paperless-media
+            - name: export
+              persistentVolumeClaim:
+                claimName: paperless-export
+            - name: scratch
+              emptyDir: {}
